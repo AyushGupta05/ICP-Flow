@@ -33,16 +33,25 @@ from timeit import default_timer as timer
 warnings.filterwarnings('ignore')
 np.set_printoptions(suppress=True)
 
+
+# open3d for point cloud stuff, track estimates which clusters correspond, flow estiamtion converts those into scene flow
 if __name__ == "__main__":
 
     # Initialization
     random.seed(0)
     np.random.seed(0)
     o3d.utility.random.seed(0)    # fix open3d seed, only in open3d>=0.16.
+
+    # behaviour replicable
     multiprocessing.set_start_method('forkserver') # or 'spawn'?
+
+    # how python starts new worker process
+
     
     # Parse hyperparameters
     parser = argparse.ArgumentParser(description='SceneFlow')
+
+    # what settings you can pass in from terminal and its default
 
     parser.add_argument('--identifier', type=str, default='run',
                         help='identify which run')
@@ -73,7 +82,9 @@ if __name__ == "__main__":
     parser.add_argument('--range_z', type=float, default=0.0,
                         help='ground<=range_z, same as PCA ECCV22')
 
-    # cluster parameters
+    # cluster parameters, for matching clusters 
+
+    #   keep at most 100 clusters (computational complexity)
     parser.add_argument('--num_clusters', type=int, default=100,
                         help='Number of clusters to keep (default: 100)')
     parser.add_argument('--min_cluster_size', type=int, default=30,
@@ -84,6 +95,7 @@ if __name__ == "__main__":
                         help='use hdbscan')
 
     # hist parameters
+    # max translation
     parser.add_argument('--speed', type=float, default=3.333,
                         help='(default: 120/km/h * 10 Hz)')
     parser.add_argument('--translation_frame', type=float, default=3.333,
@@ -131,6 +143,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     assert args.num_workers<=multiprocessing.cpu_count()
+
+    # workers is not > cpu cores
     assert args.batch_size==1
     args.identifier = str(datetime.datetime.now().strftime("%y%m%d-%H%M%S"))
     print('start processing at: ', str(datetime.datetime.now()))
@@ -153,6 +167,7 @@ if __name__ == "__main__":
     device = torch.device(device_name)
     print(f'device: {device}')
 
+# selects gpu adn then pre procesing, clearing memory etc
     if args.dataset in ['waymo', 'nuscene']:
         sf_dataset = Dataset_pca(args)
     elif args.dataset in ['argo']:
@@ -170,6 +185,7 @@ if __name__ == "__main__":
         **kwargs,
     )
 
+
     metrics_per_frame = {}
     for metric in ['overall', 'static', 'static_bg', 'static_fg', 'dynamic', 'dynamic_fg']:
         # 0: average over all points over all frames (timesteps); i.e., error per point;
@@ -180,6 +196,9 @@ if __name__ == "__main__":
             metrics_per_frame[metric_name] = AverageMeter()
     print('all metrics: ', metrics_per_frame.keys())
 
+# measure errror seperarelly for overall, static(non moving points), static_bg (static background, roads buildings), static_fg, dynamic (moving), dynamic_fg,
+
+# basically gets the y
     start_time = time.time()
     for k, batch in enumerate(data_loader):
         data, points_src, points_dst, labels_src, labels_dst = batch[0]
@@ -187,6 +206,7 @@ if __name__ == "__main__":
         pairs_t = []
         transformations_t = []
         for i, (point_src, point_dst, label_src, label_dst) in enumerate(zip(points_src, points_dst, labels_src, labels_dst)):
+            # search through pairs of frames
             # print('i: ', i)
             # visualize_pcd_plotly(point_src[:, 0:3], label_src, num_colors=100)
             # visualize_pcd_plotly(point_dst[:, 0:3], label_dst, num_colors=100)
@@ -198,7 +218,7 @@ if __name__ == "__main__":
             #               num_colors=3, title=f'input: src vs dst: {i+1}-th pair')
             # update translation_frame
             args.translation_frame = max(args.speed * (i+1), np.linalg.norm(ego_poses[i+1][0:3, -1])) * 2
-
+            # how far icp flow is allowed to look for a atching cluster
             # this demo uses GPUs for ICP calculating. 
             with torch.no_grad():
                 torch.cuda.empty_cache()
@@ -216,7 +236,7 @@ if __name__ == "__main__":
 
         flows = []
         flows.append(np.zeros((len(points_dst[0]), 3))) # append zero flows for frame 0.
-
+        # [x movement, y movement, z movement] = [0,0,0]
         for j in range(1, args.num_frames):
             pairs, transformations = pairs_t[j-1], transformations_t[j-1]
             # assigning the same labels to corresponding instances; useful for visualization 
