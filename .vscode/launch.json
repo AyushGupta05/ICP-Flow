@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ICP-Flow: GPU demo with browser output",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/demo_remote.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "python": "/home/ubuntu/miniforge3/envs/icp_flow/bin/python",
+      "env": {
+        "CUDA_HOME": "/home/ubuntu/miniforge3/envs/icp_flow",
+        "MAX_JOBS": "4",
+        "MPLBACKEND": "Agg",
+        "LIBRARY_PATH": "/home/ubuntu/miniforge3/envs/icp_flow/lib"
+      },
+      "subProcess": false
+    }
+  ]
+}

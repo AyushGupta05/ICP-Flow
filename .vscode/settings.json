@@ -1,0 +1,19 @@
+{
+  "python.defaultInterpreterPath": "/home/ubuntu/miniforge3/envs/icp_flow/bin/python",
+  "python.condaPath": "/home/ubuntu/miniforge3/bin/conda",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.env.linux": {
+    "CUDA_HOME": "/home/ubuntu/miniforge3/envs/icp_flow",
+    "MAX_JOBS": "4",
+    "MPLBACKEND": "Agg",
+    "LIBRARY_PATH": "/home/ubuntu/miniforge3/envs/icp_flow/lib"
+  },
+  "remote.autoForwardPorts": true,
+  "remote.portsAttributes": {
+    "8765": {
+      "label": "ICP-Flow 3D results",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}

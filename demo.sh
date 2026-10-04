@@ -1,3 +1,7 @@
+if [[ -z "${DISPLAY:-}" ]]; then
+    exec python scripts/demo_remote.py
+fi
+
 echo 'demo'
 pwd
 bash -c "CUDA_DEVICE_ORDER=PCI_BUS_ID \

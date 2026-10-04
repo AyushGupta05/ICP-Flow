@@ -268,12 +268,6 @@ if __name__ == "__main__":
                     else:
                         path_flow = path_flow.replace(folder, os.path.join(folder+'_icp_flow_ego'))
 
-                    if args.if_adjacent:
-                        path_flow = path_flow.replace(folder, os.path.join(folder+'_adjacent'))
-                    elif args.if_temporal:
-                        path_flow = path_flow.replace(folder, os.path.join(folder+'_temporal'))
-                    else: 
-                        pass
                     break
             assert path_flow!=data['data_path']
             if not os.path.exists(os.path.dirname(path_flow)):
@@ -313,5 +307,4 @@ if __name__ == "__main__":
     print('end processing at: ', str(datetime.datetime.now()))
     print('total time (hours): ', (time.time()-start_time)/3600.0)
     
-
 
